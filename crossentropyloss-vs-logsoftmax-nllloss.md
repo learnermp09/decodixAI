@@ -185,7 +185,7 @@ $$
 
 ---
 
-## Memory Trick
+## core concepts
 
 Think of `CrossEntropyLoss` as a "2-in-1 package":
 
