@@ -6,12 +6,14 @@
 <title>decodixAI — Understand AI by reverse engineering</title>
 <style>
   :root {
-    --bg: #ffffff;
-    --bg-alt: #f4f4f4;
-    --line: #d9d9d9;
-    --text: #2b2b2b;
-    --text-dim: #6b6b6b;
-    --accent: #3b6ea5;
+    --bg: #faf9f6;
+    --bg-alt: #f0ede8;
+    --line: #ddd5c9;
+    --ink: #1c1712;
+    --graphite: #4a4038;
+    --stone: #8c8074;
+    --coffee: #6f4e37;
+    --coffee-light: #b08968;
   }
 
   * { box-sizing: border-box; }
@@ -20,54 +22,127 @@
     margin: 0;
     padding: 0;
     background: var(--bg);
-    color: var(--text);
+    color: var(--ink);
     font-family: Verdana, Geneva, sans-serif;
-    font-size: 10pt;
+    font-size: 12pt;
     line-height: 1.6;
   }
 
+  a { color: var(--coffee); }
+
   .wrap {
-    max-width: 700px;
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 56px 24px 80px;
+    padding: 40px 24px 70px;
   }
 
-  header {
-    border-bottom: 1px solid var(--line);
+  /* ---------- Logo header ---------- */
+  .logo-header {
+    text-align: center;
     padding-bottom: 28px;
-    margin-bottom: 40px;
+    margin-bottom: 36px;
+    border-bottom: 1px solid var(--line);
   }
 
-  .eyebrow {
-    font-size: 8pt;
-    color: var(--text-dim);
-    letter-spacing: 0.02em;
-    margin-bottom: 6px;
+  .logo-header img {
+    max-width: 560px;
+    width: 100%;
+    height: auto;
   }
 
-  h1 {
-    font-size: 20pt;
-    font-weight: bold;
-    margin: 0 0 10px;
-    letter-spacing: -0.01em;
+  /* ---------- Layout grid ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 250px 1fr 250px;
+    gap: 28px;
+    align-items: start;
   }
 
-  .tagline {
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 20px 18px;
+  }
+
+  .panel-title {
     font-size: 10.5pt;
-    color: var(--text-dim);
-    max-width: 46ch;
+    font-weight: bold;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 6px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--coffee);
   }
 
-  .section-label {
+  /* ---------- About Me (left) ---------- */
+  .about-photo {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    margin: 14px auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     font-size: 9pt;
-    color: var(--text-dim);
+    color: var(--stone);
+    text-align: center;
+  }
+
+  .about-name {
+    text-align: center;
+    font-size: 12.5pt;
+    font-weight: bold;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+
+  .about-role {
+    text-align: center;
+    font-size: 9.5pt;
+    color: var(--coffee);
+    margin-bottom: 16px;
+  }
+
+  .about-body {
+    font-size: 10.5pt;
+    color: var(--graphite);
+  }
+
+  .about-body p { margin: 0 0 12px; }
+
+  .about-links {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 9.5pt;
+  }
+
+  .about-links a { text-decoration: none; color: var(--coffee); }
+  .about-links a:hover { color: var(--ink); }
+
+  /* ---------- Center: Articles ---------- */
+  .center-col .section-label {
+    font-size: 9pt;
+    color: var(--stone);
     margin-bottom: 4px;
   }
 
-  .section-title {
-    font-size: 13pt;
+  .center-col .section-title {
+    font-size: 14pt;
     font-weight: bold;
-    margin: 0 0 24px;
+    color: var(--ink);
+    margin: 0 0 20px;
   }
 
   .articles {
@@ -89,87 +164,191 @@
 
   .article:hover {
     background: var(--bg-alt);
-    border-color: #bfbfbf;
+    border-color: var(--coffee-light);
   }
 
   .article-title {
-    font-size: 11.5pt;
+    font-size: 12.5pt;
     font-weight: bold;
-    color: var(--text);
+    color: var(--ink);
     margin-bottom: 5px;
   }
 
   .article-desc {
-    font-size: 10pt;
-    color: var(--text-dim);
+    font-size: 10.5pt;
+    color: var(--graphite);
     margin-bottom: 8px;
   }
 
   .article-meta {
-    font-size: 8.5pt;
-    color: var(--accent);
+    font-size: 9pt;
+    color: var(--coffee);
   }
 
   .article-meta span + span::before {
     content: "· ";
-    color: var(--text-dim);
+    color: var(--stone);
   }
 
   .empty-slot {
     padding: 18px 16px;
     border: 1px dashed var(--line);
     border-radius: 3px;
-    color: var(--text-dim);
+    color: var(--stone);
     font-size: 9.5pt;
     text-align: center;
   }
 
-  footer {
-    margin-top: 48px;
-    padding-top: 20px;
-    border-top: 1px solid var(--line);
-    font-size: 8.5pt;
-    color: var(--text-dim);
+  /* ---------- Right: Future Apps ---------- */
+  .apps-intro {
+    font-size: 9.5pt;
+    color: var(--graphite);
+    margin-bottom: 14px;
   }
 
-  footer a {
-    color: var(--text-dim);
+  .app-slot {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 12px 14px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-bottom: 10px;
   }
+
+  .app-slot:hover {
+    background: var(--bg-alt);
+    border-color: var(--coffee-light);
+  }
+
+  .app-title {
+    font-size: 10.5pt;
+    font-weight: bold;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .app-desc {
+    font-size: 9pt;
+    color: var(--graphite);
+  }
+
+  .app-tag {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 8pt;
+    color: var(--coffee);
+  }
+
+  .apps-empty {
+    padding: 16px 14px;
+    border: 1px dashed var(--line);
+    border-radius: 3px;
+    color: var(--stone);
+    font-size: 9.5pt;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 9pt;
+    color: var(--stone);
+    text-align: center;
+  }
+
+  footer a { color: var(--stone); }
 </style>
 </head>
 <body>
   <div class="wrap">
 
-    <header>
-      <div class="eyebrow">decodixAI</div>
-      <h1>Understand AI by reverse engineering.</h1>
-      <div class="tagline">Study notes, visualizations, and worked-through explanations built by taking AI and ML concepts apart to see how they work.</div>
-    </header>
+    <!-- ================= LOGO HEADER ================= -->
+    <div class="logo-header">
+      <img src="/decodixai-logo.svg" alt="decodixAI — Deconstruct. Understand. Build the future.">
+    </div>
 
-    <div class="section-label">Index</div>
-    <div class="section-title">Articles</div>
+    <!-- ================= 3-COLUMN LAYOUT ================= -->
+    <div class="layout">
 
-    <!--
-      ADD FUTURE ARTICLES HERE.
-      Copy one <a class="article"> block, update the href, title, description, and tags.
-      Order is top-to-bottom in this HTML, most recent first is recommended.
-    -->
-    <div class="articles">
+      <!-- ---------- LEFT: About Me ---------- -->
+      <div class="panel left-col">
+        <div class="panel-title">About Me</div>
 
-      <a class="article" href="/xor/">
-        <div class="article-title">The XOR Problem, Visualized</div>
-        <div class="article-desc">An interactive walkthrough of why a single perceptron can't solve XOR, and how adding a hidden layer changes that — with a live 3D decision boundary.</div>
-        <div class="article-meta"><span>Neural Networks</span><span>Interactive</span></div>
-      </a>
+        <div class="about-photo">Photo</div>
+        <div class="about-name">Mrityunjay Pathak</div>
+        <div class="about-role">Founder, decodixAI</div>
 
-      <a class="article" href="/cross-entropy/">
-        <div class="article-title">CrossEntropyLoss vs LogSoftmax + NLLLoss</div>
-        <div class="article-desc">Breaking down what PyTorch's CrossEntropyLoss actually does under the hood, and why it isn't quite the same as chaining LogSoftmax and NLLLoss by hand.</div>
-        <div class="article-meta"><span>PyTorch</span><span>Loss Functions</span></div>
-      </a>
+        <div class="about-body">
+          <!--
+            EDIT THIS SECTION — write about yourself and your
+            knowledge-sharing philosophy here.
+          -->
+          <p>I build and break down AI systems to understand how they actually work, then write it up so others can skip the confusion I went through.</p>
+          <p>decodixAI exists on one idea: you understand something fastest by reverse engineering it — taking it apart, tracing the math, and rebuilding it from scratch.</p>
+        </div>
 
-      <!-- Example placeholder for a future article — delete this block once you add a real one -->
-      <div class="empty-slot">More articles coming soon</div>
+        <div class="about-links">
+          <a href="https://github.com/learnermp09">GitHub →</a>
+          <a href="mailto:hello@decodixai.com">Email →</a>
+        </div>
+      </div>
+
+      <!-- ---------- CENTER: Articles ---------- -->
+      <div class="center-col">
+        <div class="section-label">Index</div>
+        <div class="section-title">Articles</div>
+
+        <!--
+          ADD FUTURE ARTICLES HERE.
+          Copy one <a class="article"> block, update the href, title, description, and tags.
+          Order is top-to-bottom in this HTML, most recent first is recommended.
+        -->
+        <div class="articles">
+
+          <a class="article" href="/xor/">
+            <div class="article-title">The XOR Problem, Visualized</div>
+            <div class="article-desc">An interactive walkthrough of why a single perceptron can't solve XOR, and how adding a hidden layer changes that — with a live 3D decision boundary.</div>
+            <div class="article-meta"><span>Neural Networks</span><span>Interactive</span></div>
+          </a>
+
+          <a class="article" href="/cross-entropy/">
+            <div class="article-title">CrossEntropyLoss vs LogSoftmax + NLLLoss</div>
+            <div class="article-desc">Breaking down what PyTorch's CrossEntropyLoss actually does under the hood, and why it isn't quite the same as chaining LogSoftmax and NLLLoss by hand.</div>
+            <div class="article-meta"><span>PyTorch</span><span>Loss Functions</span></div>
+          </a>
+
+          <!-- Example placeholder for a future article — delete this block once you add a real one -->
+          <div class="empty-slot">More articles coming soon</div>
+
+        </div>
+      </div>
+
+      <!-- ---------- RIGHT: Future Apps ---------- -->
+      <div class="panel right-col">
+        <div class="panel-title">Apps</div>
+        <div class="apps-intro">LLM, agent, ML &amp; DL apps — hosted on Streamlit.</div>
+
+        <!--
+          ADD FUTURE APP LINKS HERE.
+          Copy one <a class="app-slot"> block per app, update href/title/desc/tag,
+          then delete the .apps-empty placeholder below once you add a real one.
+        -->
+
+        <!--
+        <a class="app-slot" href="https://your-app.streamlit.app">
+          <div class="app-title">App Name</div>
+          <div class="app-desc">One-line description of what it does.</div>
+          <span class="app-tag">Streamlit · LLM</span>
+        </a>
+        -->
+
+        <div class="apps-empty">Apps coming soon</div>
+      </div>
 
     </div>
 

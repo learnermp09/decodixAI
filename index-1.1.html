@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>decodixAI — Understand AI by reverse engineering</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f4f4f4;
+    --line: #d9d9d9;
+    --text: #2b2b2b;
+    --text-dim: #6b6b6b;
+    --accent: #3b6ea5;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 10pt;
+    line-height: 1.6;
+  }
+
+  .wrap {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    font-size: 8pt;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+  }
+
+  h1 {
+    font-size: 20pt;
+    font-weight: bold;
+    margin: 0 0 10px;
+    letter-spacing: -0.01em;
+  }
+
+  .tagline {
+    font-size: 10.5pt;
+    color: var(--text-dim);
+    max-width: 46ch;
+  }
+
+  .section-label {
+    font-size: 9pt;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .section-title {
+    font-size: 13pt;
+    font-weight: bold;
+    margin: 0 0 24px;
+  }
+
+  .articles {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .article {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 18px 16px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin-bottom: 12px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .article:hover {
+    background: var(--bg-alt);
+    border-color: #bfbfbf;
+  }
+
+  .article-title {
+    font-size: 11.5pt;
+    font-weight: bold;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+
+  .article-desc {
+    font-size: 10pt;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .article-meta {
+    font-size: 8.5pt;
+    color: var(--accent);
+  }
+
+  .article-meta span + span::before {
+    content: "· ";
+    color: var(--text-dim);
+  }
+
+  .empty-slot {
+    padding: 18px 16px;
+    border: 1px dashed var(--line);
+    border-radius: 3px;
+    color: var(--text-dim);
+    font-size: 9.5pt;
+    text-align: center;
+  }
+
+  footer {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 8.5pt;
+    color: var(--text-dim);
+  }
+
+  footer a {
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header>
+      <div class="eyebrow">decodixAI</div>
+      <h1>Understand AI by reverse engineering.</h1>
+      <div class="tagline">Study notes, visualizations, and worked-through explanations built by taking AI and ML concepts apart to see how they work.</div>
+    </header>
+
+    <div class="section-label">Index</div>
+    <div class="section-title">Articles</div>
+
+    <!--
+      ADD FUTURE ARTICLES HERE.
+      Copy one <a class="article"> block, update the href, title, description, and tags.
+      Order is top-to-bottom in this HTML, most recent first is recommended.
+    -->
+    <div class="articles">
+
+      <a class="article" href="/xor/">
+        <div class="article-title">The XOR Problem, Visualized</div>
+        <div class="article-desc">An interactive walkthrough of why a single perceptron can't solve XOR, and how adding a hidden layer changes that — with a live 3D decision boundary.</div>
+        <div class="article-meta"><span>Neural Networks</span><span>Interactive</span></div>
+      </a>
+
+      <a class="article" href="/cross-entropy/">
+        <div class="article-title">CrossEntropyLoss vs LogSoftmax + NLLLoss</div>
+        <div class="article-desc">Breaking down what PyTorch's CrossEntropyLoss actually does under the hood, and why it isn't quite the same as chaining LogSoftmax and NLLLoss by hand.</div>
+        <div class="article-meta"><span>PyTorch</span><span>Loss Functions</span></div>
+      </a>
+
+      <!-- Example placeholder for a future article — delete this block once you add a real one -->
+      <div class="empty-slot">More articles coming soon</div>
+
+    </div>
+
+    <footer>
+      © 2026 decodixAI. All rights reserved. Written by Mrityunjay Pathak.<br>
+      <a href="https://github.com/learnermp09/decodixAI">Source on GitHub</a>
+    </footer>
+
+  </div>
+</body>
+</html>
