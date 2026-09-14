@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XOR ⊕ Perceptron — why one line isn't enough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#10151c;
+    --bg-panel:#161d27;
+    --bg-panel-2:#1b2330;
+    --grid-line: rgba(232,230,223,0.045);
+    --ink:#e8e6df;
+    --muted:#8b93a0;
+    --faint:#5b6371;
+    --amber:#f2b84b;
+    --red:#e15554;
+    --teal:#3aafa9;
+    --hair: rgba(232,230,223,0.12);
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--body);
+    line-height:1.55;
+  }
+  .wrap{max-width:980px; margin:0 auto; padding:0 28px;}
+  a{color:var(--amber);}
+
+  /* ---- Header ---- */
+  header.hero{
+    padding:90px 0 70px;
+    border-bottom:1px solid var(--hair);
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--faint);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--amber);}
+  h1{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(34px, 5.4vw, 58px);
+    line-height:1.05;
+    margin:0 0 20px;
+    letter-spacing:-0.01em;
+  }
+  h1 .xor-symbol{color:var(--amber);}
+  .sub{
+    font-size:18px;
+    color:var(--muted);
+    max-width:60ch;
+    margin:0;
+  }
+
+  section{
+    padding:64px 0;
+    border-bottom:1px solid var(--hair);
+  }
+  section:last-of-type{border-bottom:none;}
+  .num{
+    font-family:var(--mono);
+    color:var(--amber);
+    font-size:13px;
+    letter-spacing:.1em;
+  }
+  h2{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(24px,3.4vw,32px);
+    margin:8px 0 18px;
+    letter-spacing:-0.01em;
+  }
+  p{color:var(--ink); font-size:16px; max-width:66ch;}
+  p.muted{color:var(--muted);}
+  .lede{font-size:17px; color:var(--muted); max-width:64ch;}
+
+  code, .mono{font-family:var(--mono); font-size:14.5px;}
+  .formula{
+    font-family:var(--mono);
+    background:var(--bg-panel);
+    border:1px solid var(--hair);
+    border-radius:8px;
+    padding:16px 20px;
+    display:inline-block;
+    font-size:15px;
+    color:var(--amber);
+    margin:10px 0 6px;
+  }
+
+  /* ---- layout helpers ---- */
+  .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:36px; align-items:start;}
+  .grid3{display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;}
+  @media (max-width: 760px){
+    .grid2{grid-template-columns:1fr;}
+    .grid3{grid-template-columns:1fr;}
+  }
+
+  .panel{
+    background:var(--bg-panel);
+    border:1px solid var(--hair);
+    border-radius:12px;
+    padding:22px;
+  }
+  .panel h3{
+    font-family:var(--display);
+    font-size:16px;
+    margin:0 0 4px;
+    font-weight:600;
+  }
+  .panel .tag{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--faint);
+    text-transform:uppercase;
+    letter-spacing:.1em;
+  }
+
+  /* ---- truth table mini plots ---- */
+  .mini-plot{width:100%; aspect-ratio:1/1; display:block;}
+  .legend{display:flex; gap:18px; margin-top:10px; font-family:var(--mono); font-size:12px; color:var(--muted);}
+  .legend span{display:inline-flex; align-items:center; gap:6px;}
+  .swatch{width:10px;height:10px;border-radius:3px; display:inline-block;}
+
+  /* ---- interactive section ---- */
+  .controls{display:flex; flex-direction:column; gap:18px; margin-top:6px;}
+  .slider-row label{
+    font-family:var(--mono);
+    font-size:13px;
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .slider-row label .val{color:var(--amber);}
+  input[type=range]{
+    width:100%;
+    -webkit-appearance:none;
+    height:4px;
+    border-radius:2px;
+    background:var(--hair);
+    outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--amber);
+    cursor:pointer;
+    border:2px solid var(--bg);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:16px;height:16px;
+    border-radius:50%;
+    background:var(--amber);
+    cursor:pointer;
+    border:2px solid var(--bg);
+  }
+  .score{
+    font-family:var(--mono);
+    font-size:14px;
+    margin-top:16px;
+    padding:12px 14px;
+    border-radius:8px;
+    background:var(--bg-panel-2);
+    border:1px solid var(--hair);
+  }
+  .score .n{color:var(--amber); font-weight:600;}
+  .score.full{border-color:var(--teal); color:var(--teal);}
+  .btn{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.06em;
+    background:transparent;
+    border:1px solid var(--hair);
+    color:var(--muted);
+    padding:9px 14px;
+    border-radius:7px;
+    cursor:pointer;
+    text-transform:uppercase;
+  }
+  .btn:hover{border-color:var(--amber); color:var(--amber);}
+
+  /* ---- network diagram ---- */
+  .net-svg text{font-family:var(--mono); fill:var(--muted);}
+  .net-node-label{font-family:var(--mono); font-size:11px; fill:var(--ink);}
+
+  /* Verification Table */
+  #verificationTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 13.5px;
+    margin-top: 16px;
+  }
+  #verificationTable th, #verificationTable td {
+    padding: 8px 12px;
+    text-align: center;
+    border: 1px solid var(--hair);
+  }
+  #verificationTable th {
+    background: var(--bg-panel-2);
+    color: var(--amber);
+  }
+  .correct { color: var(--teal); font-weight: 600; }
+  .incorrect { color: var(--red); font-weight: 600; }
+
+  footer{padding:50px 0 80px; color:var(--faint); font-size:13px; font-family:var(--mono);}
+
+  ::selection{background:var(--amber); color:var(--bg);}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span> PERCEPTRONS &amp; LINEAR SEPARABILITY</div>
+    <h1>Why one neuron can't<br>learn <span class="xor-symbol">XOR</span></h1>
+    <p class="sub">A single perceptron can only draw one straight line through its input space. That's enough for AND and OR — but not for XOR. Here's why, and how stacking a second layer of neurons fixes it.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="num">01 — THE UNIT</div>
+    <h2>What a perceptron actually does</h2>
+    <div class="grid2">
+      <div>
+        <p>A perceptron takes inputs <code class="mono">x1, x2</code>, multiplies each by a learned weight, adds a bias, and passes the result through a step function. If the weighted sum clears the threshold, it fires a 1. Otherwise, 0.</p>
+        <div class="formula">y = step( w1·x1 + w2·x2 + b )</div>
+        <p class="muted">Geometrically, <code class="mono">w1·x1 + w2·x2 + b = 0</code> is a straight line. The perceptron fires on one side of that line and stays silent on the other. Training just moves the line around — it can never bend it.</p>
+      </div>
+      <div class="panel">
+        <div class="tag">Single unit</div>
+        <h3 style="margin-bottom:14px;">One line, two sides</h3>
+        <svg viewBox="0 0 260 140" class="net-svg" style="width:100%">
+          <circle cx="30" cy="45" r="14" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+          <text x="30" y="49" text-anchor="middle" class="net-node-label">x1</text>
+          <circle cx="30" cy="95" r="14" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+          <text x="30" y="99" text-anchor="middle" class="net-node-label">x2</text>
+          <circle cx="150" cy="70" r="18" fill="none" stroke="var(--amber)" stroke-width="2"/>
+          <text x="150" y="75" text-anchor="middle" class="net-node-label" style="fill:var(--amber)">Σ</text>
+          <line x1="44" y1="45" x2="132" y2="65" stroke="var(--hair)" stroke-width="1.5"/>
+          <line x1="44" y1="95" x2="132" y2="75" stroke="var(--hair)" stroke-width="1.5"/>
+          <line x1="168" y1="70" x2="225" y2="70" stroke="var(--hair)" stroke-width="1.5"/>
+          <circle cx="235" cy="70" r="10" fill="none" stroke="var(--teal)" stroke-width="2"/>
+          <text x="235" y="74" text-anchor="middle" class="net-node-label" style="fill:var(--teal)">y</text>
+        </svg>
+        <p class="muted" style="font-size:13px; margin-top:10px;">Two inputs, one summing unit, one output. This is the entire architecture — and its entire limitation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="num">02 — THE TRUTH TABLES</div>
+    <h2>AND and OR are separable. XOR isn't.</h2>
+    <p class="lede">Plot the four input combinations on a grid and color them by their correct output. If a single straight line can separate the red points from the teal points, a perceptron can learn it.</p>
+    <div class="grid3" id="truthTables"></div>
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--red)"></span>output = 0</span>
+      <span><span class="swatch" style="background:var(--teal)"></span>output = 1</span>
+      <span><span class="swatch" style="background:var(--amber); border-radius:0; width:14px; height:2px;"></span>a valid separating line</span>
+    </div>
+    <p style="margin-top:22px;">Notice the pattern for XOR: the two "1" points sit on opposite corners of the square, diagonal from each other, and so do the two "0" points. Any straight line that separates one diagonal pair also has to cut through the other. There is no rotation or position for a single line that works — XOR is <strong>not linearly separable</strong>.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="num">03 — PROVE IT YOURSELF</div>
+    <h2>Try to fit one perceptron to XOR</h2>
+    <p class="lede">Drag the weights and bias below. The line is the perceptron's entire decision boundary. Watch the score — see if you can ever reach 4 out of 4.</p>
+    <div class="grid2" style="margin-top:24px;">
+      <div class="panel">
+        <div class="tag">Decision boundary</div>
+        <svg viewBox="0 0 300 300" class="mini-plot" id="singlePlot"></svg>
+        <div class="score" id="singleScore"></div>
+      </div>
+      <div>
+        <div class="controls">
+          <div class="slider-row">
+            <label>w1 (weight on x1) <span class="val" id="w1val">1.0</span></label>
+            <input type="range" id="w1" min="-3" max="3" step="0.1" value="1">
+          </div>
+          <div class="slider-row">
+            <label>w2 (weight on x2) <span class="val" id="w2val">1.0</span></label>
+            <input type="range" id="w2" min="-3" max="3" step="0.1" value="1">
+          </div>
+          <div class="slider-row">
+            <label>b (bias) <span class="val" id="bval">-0.5</span></label>
+            <input type="range" id="b" min="-3" max="3" step="0.1" value="-0.5">
+          </div>
+          <button class="btn" id="resetBtn">Reset weights</button>
+        </div>
+
+        <!-- New Verification Table -->
+        <div class="panel" style="margin-top:24px;">
+          <div class="tag">Real-time Calculation</div>
+          <table id="verificationTable">
+            <thead>
+              <tr>
+                <th>Point</th>
+                <th>w1·x1</th>
+                <th>w2·x2</th>
+                <th>+ b</th>
+                <th>Sum</th>
+                <th>Prediction</th>
+                <th>Target</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <p class="muted" style="margin-top:20px; font-size:14.5px;">Go on, try every combination that feels right. The best any single line can do on XOR is <strong style="color:var(--amber)">3 out of 4</strong> — one corner is always misclassified, because it's diagonal from its own kind and neighboring its opposite.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="num">04 — REVERSE-ENGINEERING THE FIX</div>
+    <h2>Don't guess the weights. Derive them from the truth table.</h2>
+    <p class="lede">Instead of pulling numbers out of thin air, work backward from what XOR actually means logically, then convert each logical piece into a perceptron.</p>
+
+    <div class="grid2" style="margin-top:24px;">
+      <div>
+        <p><strong>Step 1 — decompose XOR into simpler gates.</strong> Stare at the truth table long enough and a pattern falls out: XOR is true exactly when the inputs are different, which is the same as saying "at least one is on, but not both."</p>
+        <div class="formula">XOR(x1,x2) = OR(x1,x2) AND NOT·AND(x1,x2)</div>
+        <p class="muted">That's two gates you already know are linearly separable (OR, AND) combined by a third linear decision. Three perceptrons, none of which individually need to solve XOR.</p>
+      </div>
+      <div>
+        <p><strong>Step 2 — derive each hidden neuron's line from its own truth table.</strong> For OR, you need a line where <code class="mono">(0,0)</code> is alone on the "off" side. Any line between the origin and the other three points works — the simplest is <code class="mono">x1+x2 = 0.5</code>. For AND, you need <code class="mono">(1,1)</code> alone on the "on" side — <code class="mono">x1+x2 = 1.5</code> does that.</p>
+        <div class="formula">h1 = step(x1 + x2 − 0.5) &nbsp;·&nbsp; h2 = step(x1 + x2 − 1.5)</div>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:8px;">
+      <div>
+        <p><strong>Step 3 — solve the output layer the same way you'd solve any single perceptron.</strong> Once h1 and h2 exist, the output's job is just <code class="mono">h1 AND NOT h2</code> — itself a 2-input truth table over <code class="mono">(h1, h2)</code> instead of <code class="mono">(x1, x2)</code>. It has exactly one truth table row, so any weights that make <code class="mono">h1 − h2</code> cross zero only at that row will do.</p>
+        <div class="formula">y = step(h1 − h2 − 0.5)</div>
+      </div>
+      <div class="panel">
+        <div class="tag">Check by substitution</div>
+        <table class="mono" style="width:100%; border-collapse:collapse; font-size:13px;">
+          <tr style="color:var(--muted);"><td>x1,x2</td><td>h1</td><td>h2</td><td>y</td><td>XOR</td></tr>
+          <tr><td>0,0</td><td>0</td><td>0</td><td>0</td><td>0 ✓</td></tr>
+          <tr><td>1,0</td><td>1</td><td>0</td><td>1</td><td>1 ✓</td></tr>
+          <tr><td>0,1</td><td>1</td><td>0</td><td>1</td><td>1 ✓</td></tr>
+          <tr><td>1,1</td><td>1</td><td>1</td><td>0</td><td>0 ✓</td></tr>
+        </table>
+        <p class="muted" style="font-size:13px; margin-top:10px;">Every row checks out by hand — no training loop needed. This is the same solution the network below draws, just arrived at by reasoning instead of gradient descent.</p>
+      </div>
+    </div>
+
+    <p style="margin-top:34px;"><strong>Step 3.5 — see the wiring.</strong> Three perceptrons, each with its own inputs, weights, and bias — laid out exactly as derived above. Every perceptron is really two stages: a weighted sum (Σ), then a step activation (small circle) that turns it into a hard 0/1.</p>
+    <div class="panel">
+      <div class="tag">Derived architecture</div>
+      <svg viewBox="0 0 680 300" class="net-svg" style="width:100%; margin-top:10px;">
+        <!-- input nodes -->
+        <circle cx="40" cy="90" r="16" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+        <text x="40" y="95" text-anchor="middle" class="net-node-label">x1</text>
+        <circle cx="40" cy="210" r="16" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+        <text x="40" y="215" text-anchor="middle" class="net-node-label">x2</text>
+
+        <!-- h1: sum + step -->
+        <circle cx="215" cy="60" r="18" fill="none" stroke="var(--teal)" stroke-width="2.5"/>
+        <text x="215" y="65" text-anchor="middle" class="net-node-label" style="fill:var(--teal); font-size:12px;">Σ</text>
+        <line x1="58" y1="90" x2="199" y2="66" stroke="var(--hair)" stroke-width="1.5"/>
+        <line x1="58" y1="210" x2="199" y2="76" stroke="var(--hair)" stroke-width="1.5"/>
+        <text x="120" y="52" text-anchor="middle" style="font-size:11px; fill:var(--faint)">w1=1</text>
+        <text x="120" y="150" text-anchor="middle" style="font-size:11px; fill:var(--faint)">w2=1</text>
+        <text x="215" y="28" text-anchor="middle" style="font-size:11px; fill:var(--faint)">b=&minus;0.5</text>
+        <line x1="233" y1="60" x2="256" y2="60" stroke="var(--teal)" stroke-width="1.5"/>
+        <circle cx="268" cy="60" r="11" fill="none" stroke="var(--teal)" stroke-width="2"/>
+        <polyline points="263,64 267,64 267,56 273,56" fill="none" stroke="var(--teal)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="268" y="84" text-anchor="middle" style="font-size:10px; fill:var(--faint)">h1 (≈OR)</text>
+
+        <!-- h2: sum + step -->
+        <circle cx="215" cy="240" r="18" fill="none" stroke="var(--red)" stroke-width="2.5"/>
+        <text x="215" y="245" text-anchor="middle" class="net-node-label" style="fill:var(--red); font-size:12px;">Σ</text>
+        <line x1="58" y1="90" x2="199" y2="224" stroke="var(--hair)" stroke-width="1.5"/>
+        <line x1="58" y1="210" x2="199" y2="234" stroke="var(--hair)" stroke-width="1.5"/>
+        <text x="215" y="282" text-anchor="middle" style="font-size:11px; fill:var(--faint)">b=&minus;1.5</text>
+        <line x1="233" y1="240" x2="256" y2="240" stroke="var(--red)" stroke-width="1.5"/>
+        <circle cx="268" cy="240" r="11" fill="none" stroke="var(--red)" stroke-width="2"/>
+        <polyline points="263,244 267,244 267,236 273,236" fill="none" stroke="var(--red)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="268" y="220" text-anchor="middle" style="font-size:10px; fill:var(--faint)">h2 (≈AND)</text>
+
+        <!-- output: sum + step -->
+        <circle cx="480" cy="150" r="20" fill="none" stroke="var(--amber)" stroke-width="3"/>
+        <text x="480" y="156" text-anchor="middle" class="net-node-label" style="fill:var(--amber); font-size:13px;">Σ</text>
+        <line x1="279" y1="63" x2="461" y2="139" stroke="var(--hair)" stroke-width="1.5"/>
+        <line x1="279" y1="237" x2="461" y2="161" stroke="var(--hair)" stroke-width="1.5"/>
+        <text x="360" y="90" text-anchor="middle" style="font-size:11px; fill:var(--faint)">w1=+1</text>
+        <text x="360" y="222" text-anchor="middle" style="font-size:11px; fill:var(--faint)">w2=&minus;1</text>
+        <text x="480" y="118" text-anchor="middle" style="font-size:11px; fill:var(--faint)">b=&minus;0.5</text>
+        <line x1="500" y1="150" x2="523" y2="150" stroke="var(--amber)" stroke-width="1.5"/>
+        <circle cx="535" cy="150" r="11" fill="none" stroke="var(--amber)" stroke-width="2"/>
+        <polyline points="530,154 534,154 534,146 540,146" fill="none" stroke="var(--amber)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="480" y="188" text-anchor="middle" style="font-size:10px; fill:var(--faint)">y = h1 AND NOT h2</text>
+
+        <!-- output label -->
+        <line x1="546" y1="150" x2="590" y2="150" stroke="var(--hair)" stroke-width="1.5"/>
+        <text x="612" y="155" text-anchor="middle" class="net-node-label" style="fill:var(--ink); font-size:13px;">XOR</text>
+      </svg>
+      <p class="muted" style="font-size:13px; margin-top:6px;">Each pair — a large Σ circle plus the small circle right after it — is one perceptron: the sum happens in Σ, the small circle applies <code class="mono">step()</code> and produces the actual 0/1 that travels to the next layer. Same two inputs feed both hidden perceptrons in parallel; only h1 and h2's activated outputs, never x1, x2 directly, reach the final perceptron.</p>
+    </div>
+
+    <p style="margin-top:34px;"><strong>A note on <code class="mono">step()</code>.</strong> This is the activation function sitting inside every perceptron call above. It's a hard threshold, not a smooth curve: any sum <em>below</em> zero collapses straight down to 0, and zero-or-above is what lets the neuron fire and pass through a 1.</p>
+    <div class="formula">step(z) = 0&nbsp; if z &lt; 0&nbsp; &nbsp;·&nbsp; &nbsp;step(z) = 1&nbsp; if z ≥ 0</div>
+    <p class="muted" style="font-size:13.5px; margin-top:2px;">In other words: crossing the line is binary, not gradual. A neuron doesn't "half-fire" — it's either on the firing side of its boundary (1) or strictly on the other side of it (0). That all-or-nothing gate is what turns a continuous weighted sum into the clean logical AND / OR / NOT behaviour each perceptron above is standing in for.</p>
+
+    <p style="margin-top:24px;"><strong>Step 4 — write it down.</strong> Three calls to the same tiny perceptron function, wired together exactly as derived above:</p>
+    <div class="panel" style="padding:0; overflow:hidden;">
+      <div class="tag" style="padding:16px 20px 0;">python</div>
+      <pre style="margin:0; padding:10px 20px 22px; overflow-x:auto;"><code class="mono" style="color:var(--ink); font-size:13.5px; line-height:1.7; white-space:pre;"><span style="color:var(--amber)">def</span> step(z):
+    <span style="color:var(--amber)">return</span> 1 <span style="color:var(--amber)">if</span> z >= 0 <span style="color:var(--amber)">else</span> 0
+
+<span style="color:var(--amber)">def</span> perceptron(x1, x2, w1, w2, b):
+    <span style="color:var(--amber)">return</span> step(w1 * x1 + w2 * x2 + b)
+
+<span style="color:var(--amber)">def</span> xor_mlp(x1, x2):
+    h1 = perceptron(x1, x2, w1=1, w2=1, b=-0.5)   <span style="color:var(--faint)"># acts like OR</span>
+    h2 = perceptron(x1, x2, w1=1, w2=1, b=-1.5)   <span style="color:var(--faint)"># acts like AND</span>
+    y  = perceptron(h1, h2, w1=1, w2=-1, b=-0.5)  <span style="color:var(--faint)"># h1 AND NOT h2</span>
+    <span style="color:var(--amber)">return</span> y
+
+<span style="color:var(--amber)">for</span> x1 <span style="color:var(--amber)">in</span> (0, 1):
+    <span style="color:var(--amber)">for</span> x2 <span style="color:var(--amber)">in</span> (0, 1):
+        print(<span style="color:var(--teal)">f"XOR({x1},{x2}) = {xor_mlp(x1, x2)}"</span>)</code></pre>
+    </div>
+    <p class="muted" style="font-size:13.5px; margin-top:12px;">Output: <span class="mono">XOR(0,0)=0, XOR(1,0)=1, XOR(0,1)=1, XOR(1,1)=0</span> — no single perceptron call ever sees the full XOR problem; each only ever solves a linearly separable sub-problem.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="num">05 — THE FIX, VISUALIZED</div>
+    <h2>Two lines fold the space. One more neuron finishes the job.</h2>
+    <p class="lede">A single perceptron can't bend space, but a <strong>hidden layer</strong> of two perceptrons can each draw their own line — and a third perceptron can combine their outputs. Together they carve out a region no single line could isolate.</p>
+
+    <div class="grid2" style="margin-top:28px;">
+      <div class="panel">
+        <div class="tag">Network with one hidden layer</div>
+        <svg viewBox="0 0 320 220" class="net-svg" style="width:100%; margin-top:8px;">
+          <!-- inputs -->
+          <circle cx="30" cy="70" r="14" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+          <text x="30" y="74" text-anchor="middle" class="net-node-label">x1</text>
+          <circle cx="30" cy="150" r="14" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+          <text x="30" y="154" text-anchor="middle" class="net-node-label">x2</text>
+
+          <!-- hidden -->
+          <circle cx="155" cy="50" r="16" fill="none" stroke="var(--teal)" stroke-width="2"/>
+          <text x="155" y="55" text-anchor="middle" class="net-node-label" style="fill:var(--teal)">h1</text>
+          <text x="155" y="30" text-anchor="middle" style="font-size:10px; fill:var(--faint)">≈ OR</text>
+
+          <circle cx="155" cy="150" r="16" fill="none" stroke="var(--red)" stroke-width="2"/>
+          <text x="155" y="155" text-anchor="middle" class="net-node-label" style="fill:var(--red)">h2</text>
+          <text x="155" y="188" text-anchor="middle" style="font-size:10px; fill:var(--faint)">≈ AND</text>
+
+          <!-- output -->
+          <circle cx="270" cy="100" r="18" fill="none" stroke="var(--amber)" stroke-width="2.5"/>
+          <text x="270" y="105" text-anchor="middle" class="net-node-label" style="fill:var(--amber)">y</text>
+          <text x="270" y="130" text-anchor="middle" style="font-size:10px; fill:var(--faint)">h1 AND NOT h2</text>
+
+          <!-- edges -->
+          <line x1="44" y1="70" x2="140" y2="55" stroke="var(--hair)" stroke-width="1.5"/>
+          <line x1="44" y1="70" x2="140" y2="145" stroke="var(--hair)" stroke-width="1.5"/>
+          <line x1="44" y1="150" x2="140" y2="55" stroke="var(--hair)" stroke-width="1.5"/>
+          <line x1="44" y1="150" x2="140" y2="145" stroke="var(--hair)" stroke-width="1.5"/>
+          <line x1="170" y1="52" x2="255" y2="92" stroke="var(--hair)" stroke-width="1.5"/>
+          <line x1="170" y1="148" x2="255" y2="108" stroke="var(--hair)" stroke-width="1.5"/>
+        </svg>
+        <p class="muted" style="font-size:13.5px; margin-top:4px;">Hidden neuron <span class="mono" style="color:var(--teal)">h1</span> fires like OR. Hidden neuron <span class="mono" style="color:var(--red)">h2</span> fires like AND. The output neuron fires only when h1 is on <em>and</em> h2 is off — catching the two points that are "OR but not AND."</p>
+      </div>
+
+      <div class="panel">
+        <div class="tag">Folded decision region</div>
+        <svg viewBox="0 0 300 300" class="mini-plot" id="mlpPlot"></svg>
+        <p class="muted" style="font-size:13.5px; margin-top:10px;">The two hidden lines (<span style="color:var(--teal)">teal</span> and <span style="color:var(--red)">red</span>) slice the plane into a band. The output neuron lights up only inside that band — exactly where XOR's two "1" points live, and nowhere else.</p>
+      </div>
+    </div>
+
+    <p style="margin-top:30px;">This is the general idea behind multilayer perceptrons: each hidden neuron still only draws a straight line, but the next layer can combine several of those lines with logical operations like AND / OR / NOT.</p>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="num">06 — SEE THE FOLD IN 3D</div>
+    <h2>The output neuron's raw sum, lifted into the third dimension</h2>
+    <p class="lede">Flatten the step functions away for a moment and just plot the output neuron's pre-activation value — <code class="mono">h1 − h2 − 0.5</code> — as a height above each point in the x1–x2 plane. Where that height is above zero, the network fires 1. The two hidden biases <code class="mono">b1</code>, <code class="mono">b2</code> control where the two cuts happen; drag the view around to see why only certain values raise the correct two corners above the plane.</p>
+
+    <div class="grid2" style="margin-top:24px; align-items:flex-start;">
+      <div class="panel" style="padding:14px;">
+        <div class="tag" style="padding:4px 6px 0;">Drag to orbit</div>
+        <canvas id="foldCanvas" width="560" height="460" style="width:100%; height:auto; cursor:grab; touch-action:none;"></canvas>
+        <div class="legend" style="margin-top:2px; padding:0 6px;">
+          <span><span class="swatch" style="background:var(--red)"></span>below zero → output 0</span>
+          <span><span class="swatch" style="background:var(--teal)"></span>above zero → output 1</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="controls">
+          <div class="slider-row">
+            <label>b1 — h1's bias (≈ OR line) <span class="val" id="fb1val">-0.5</span></label>
+            <input type="range" id="fb1" min="-2" max="0.3" step="0.05" value="-0.5">
+          </div>
+          <div class="slider-row">
+            <label>b2 — h2's bias (≈ AND line) <span class="val" id="fb2val">-1.5</span></label>
+            <input type="range" id="fb2" min="-2.7" max="-0.3" step="0.05" value="-1.5">
+          </div>
+          <div class="slider-row">
+            <label>azimuth (spin) <span class="val" id="fazval">35°</span></label>
+            <input type="range" id="faz" min="0" max="360" step="1" value="35">
+          </div>
+          <div class="slider-row">
+            <label>elevation (tilt) <span class="val" id="felval">26°</span></label>
+            <input type="range" id="fel" min="8" max="85" step="1" value="26">
+          </div>
+          <button class="btn" id="foldResetBtn">Reset to XOR solution</button>
+        </div>
+        <div class="score" id="foldScore" style="margin-top:18px;"></div>
+        <p class="muted" style="font-size:13.5px; margin-top:14px;">At <code class="mono">b1 = −0.5, b2 = −1.5</code> the surface forms a raised plateau sitting only over <code class="mono">(1,0)</code> and <code class="mono">(0,1)</code>, with the other two corners sitting in the lower terrace. Drag either bias slider and watch the plateau slide until it swallows the wrong corners — or disappears entirely.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="num">07 — KNOWLEDGE CHECK</div>
+    <h2>Test Your Understanding: XOR &amp; Perceptrons</h2>
+    <p class="lede">Five medium-difficulty multiple-choice questions on linear separability, perceptrons, and multilayer solutions. Choose the best answer for each.</p>
+
+    <div id="quizContainer" style="max-width:720px; margin:40px auto 0;"></div>
+
+    <div style="text-align:center; margin:40px 0;">
+      <button class="btn" id="submitQuiz" style="padding:12px 32px; font-size:14px;">Check Answers</button>
+      <button class="btn" id="resetQuiz" style="margin-left:12px; padding:12px 32px; font-size:14px;">Reset Quiz</button>
+    </div>
+
+    <div id="quizResults" class="panel" style="margin-top:30px; display:none;">
+      <h3>Your Results</h3>
+      <div id="scoreDisplay" class="score" style="font-size:18px; padding:20px; margin-bottom:20px;"></div>
+      <div id="explanations"></div>
+      <p class="muted" style="margin-top:24px; font-size:13px;">Detailed answers and explanations are shown above. Review sections 02–05 if needed.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">XOR ⊕ PERCEPTRON — an interactive note on linear separability (C)MrityunjayPathak@decodexai</div>
+</footer>
+
+<script>
+// ================= 3D fold visualization =================
+(function(){
+  const canvas = document.getElementById('foldCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2 + 30;
+
+  const fb1 = document.getElementById('fb1');
+  const fb2 = document.getElementById('fb2');
+  const faz = document.getElementById('faz');
+  const fel = document.getElementById('fel');
+  const foldScore = document.getElementById('foldScore');
+
+  let azimuth = parseFloat(faz.value) * Math.PI/180;
+  let elevation = parseFloat(fel.value) * Math.PI/180;
+
+  const XY_SCALE = 150;
+  const Z_SCALE = 90;
+
+  function stepFn(v){ return v >= 0 ? 1 : 0; }
+
+  function outputZ(x1, x2, b1, b2){
+    const h1 = stepFn(x1 + x2 + b1);
+    const h2 = stepFn(x1 + x2 + b2);
+    return h1 - h2 - 0.5;
+  }
+
+  function project(x1, x2, z){
+    let X = x1 - 0.5, Y = x2 - 0.5, Z = z;
+    let X1 = X*Math.cos(azimuth) - Y*Math.sin(azimuth);
+    let Y1 = X*Math.sin(azimuth) + Y*Math.cos(azimuth);
+    let Z1 = Z;
+    let Y2 = Y1*Math.cos(elevation) - Z1*Math.sin(elevation);
+    let Z2 = Y1*Math.sin(elevation) + Z1*Math.cos(elevation);
+    let X2 = X1;
+    return {
+      sx: cx + X2 * XY_SCALE,
+      sy: cy - Z2 * Z_SCALE,
+      depth: Y2
+    };
+  }
+
+  function colorForZ(z){
+    if(z >= 0){
+      const t = Math.min(1, z / 0.6);
+      return `rgba(58, ${Math.round(160+40*t)}, ${Math.round(150+30*t)}, 0.85)`;
+    } else {
+      const t = Math.min(1, -z / 0.6);
+      return `rgba(${Math.round(210+20*t)}, ${Math.round(80-20*t)}, ${Math.round(80-20*t)}, 0.85)`;
+    }
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    const b1 = parseFloat(fb1.value);
+    const b2 = parseFloat(fb2.value);
+    document.getElementById('fb1val').textContent = b1.toFixed(2);
+    document.getElementById('fb2val').textContent = b2.toFixed(2);
+    document.getElementById('fazval').textContent = Math.round(azimuth*180/Math.PI) + '°';
+    document.getElementById('felval').textContent = Math.round(elevation*180/Math.PI) + '°';
+
+    const RES = 16;
+    const lo = -0.35, hi = 1.35;
+    const step = (hi - lo) / RES;
+    const quads = [];
+
+    for(let i=0;i<RES;i++){
+      for(let j=0;j<RES;j++){
+        const x1a = lo + i*step, x1b = lo + (i+1)*step;
+        const x2a = lo + j*step, x2b = lo + (j+1)*step;
+        const cxm = (x1a+x1b)/2, cxn = (x2a+x2b)/2;
+        const z = outputZ(cxm, cxn, b1, b2);
+        const corners = [
+          [x1a,x2a], [x1b,x2a], [x1b,x2b], [x1a,x2b]
+        ].map(([px,py]) => project(px, py, z));
+        const avgDepth = corners.reduce((s,c)=>s+c.depth,0)/4;
+        quads.push({corners, z, avgDepth});
+      }
+    }
+
+    const planePts = [];
+    for(let i=0;i<=4;i++){
+      const x1v = lo + (hi-lo)*i/4;
+      planePts.push([project(x1v, lo, 0), project(x1v, hi, 0)]);
+      planePts.push([project(lo, x1v, 0), project(hi, x1v, 0)]);
+    }
+    const planeDepth = planePts.reduce((s,p)=>s+(p[0].depth+p[1].depth)/2,0)/planePts.length;
+
+    const drawables = quads.map(q => ({type:'quad', d:q.avgDepth, q}));
+    drawables.push({type:'plane', d: planeDepth});
+    drawables.sort((a,b)=> a.d - b.d);
+
+    drawables.forEach(item=>{
+      if(item.type === 'plane'){
+        ctx.strokeStyle = 'rgba(139,147,160,0.35)';
+        ctx.lineWidth = 1;
+        planePts.forEach(([p1,p2])=>{
+          ctx.beginPath();
+          ctx.moveTo(p1.sx,p1.sy);
+          ctx.lineTo(p2.sx,p2.sy);
+          ctx.stroke();
+        });
+      } else {
+        const q = item.q;
+        ctx.beginPath();
+        ctx.moveTo(q.corners[0].sx, q.corners[0].sy);
+        for(let k=1;k<4;k++) ctx.lineTo(q.corners[k].sx, q.corners[k].sy);
+        ctx.closePath();
+        ctx.fillStyle = colorForZ(q.z);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(16,21,28,0.25)';
+        ctx.lineWidth = 0.6;
+        ctx.stroke();
+      }
+    });
+
+    const XOR_PTS = [
+      {x1:0,x2:0,y:0}, {x1:1,x2:0,y:1}, {x1:0,x2:1,y:1}, {x1:1,x2:1,y:0}
+    ];
+    const pointDraw = XOR_PTS.map(pt=>{
+      const z = outputZ(pt.x1, pt.x2, b1, b2);
+      const top = project(pt.x1, pt.x2, z);
+      const base = project(pt.x1, pt.x2, -0.65);
+      return {pt, z, top, base, depth: top.depth};
+    }).sort((a,b)=> a.depth - b.depth);
+
+    pointDraw.forEach(({pt, z, top, base})=>{
+      const color = z >= 0 ? '#3AAFA9' : '#E15554';
+      ctx.strokeStyle = color;
+      ctx.setLineDash([3,3]);
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(top.sx, top.sy);
+      ctx.lineTo(base.sx, base.sy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath();
+      ctx.arc(top.sx, top.sy, 9, 0, Math.PI*2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.strokeStyle = '#10151c';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = '#e8e6df';
+      ctx.font = '11px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`(${pt.x1},${pt.x2})`, top.sx, top.sy - 16);
+    });
+
+    const correct = XOR_PTS.filter(pt => stepFn(outputZ(pt.x1,pt.x2,b1,b2)) === pt.y).length;
+    foldScore.innerHTML = `Correctly classified: <span class="n">${correct} / 4</span>`;
+    foldScore.classList.toggle('full', correct === 4);
+  }
+
+  let dragging = false, lastX = 0, lastY = 0;
+  canvas.addEventListener('pointerdown', e=>{
+    dragging = true; lastX = e.clientX; lastY = e.clientY;
+    canvas.style.cursor = 'grabbing';
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointerup', ()=>{ dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('pointerleave', ()=>{ dragging = false; canvas.style.cursor = 'grab'; });
+  canvas.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    azimuth += dx * 0.008;
+    elevation = Math.max(8*Math.PI/180, Math.min(85*Math.PI/180, elevation - dy * 0.006));
+    faz.value = ((azimuth*180/Math.PI) % 360 + 360) % 360;
+    fel.value = elevation*180/Math.PI;
+    render();
+  });
+
+  [fb1, fb2].forEach(s => s.addEventListener('input', render));
+  faz.addEventListener('input', ()=>{ azimuth = parseFloat(faz.value)*Math.PI/180; render(); });
+  fel.addEventListener('input', ()=>{ elevation = parseFloat(fel.value)*Math.PI/180; render(); });
+  document.getElementById('foldResetBtn').addEventListener('click', ()=>{
+    fb1.value = -0.5; fb2.value = -1.5; faz.value = 35; fel.value = 26;
+    azimuth = 35*Math.PI/180; elevation = 26*Math.PI/180;
+    render();
+  });
+
+  render();
+})();
+
+// ---------- coordinate helpers ----------
+function px(x1){ return (x1 + 0.5) * 150; }
+function py(x2){ return 300 - (x2 + 0.5) * 150; }
+
+const XOR_POINTS = [
+  {x1:0, x2:0, y:0},
+  {x1:1, x2:0, y:1},
+  {x1:0, x2:1, y:1},
+  {x1:1, x2:1, y:0},
+];
+const AND_POINTS = [
+  {x1:0, x2:0, y:0},{x1:1, x2:0, y:0},{x1:0, x2:1, y:0},{x1:1, x2:1, y:1}
+];
+const OR_POINTS = [
+  {x1:0, x2:0, y:0},{x1:1, x2:0, y:1},{x1:0, x2:1, y:1},{x1:1, x2:1, y:1}
+];
+
+function svgEl(tag, attrs){
+  const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+
+function gridBackground(svg){
+  for(let i=0;i<=4;i++){
+    const p = i*75;
+    svg.appendChild(svgEl('line',{x1:p,y1:0,x2:p,y2:300,stroke:'var(--hair)','stroke-width':1}));
+    svg.appendChild(svgEl('line',{x1:0,y1:p,x2:300,y2:p,stroke:'var(--hair)','stroke-width':1}));
+  }
+}
+
+function drawPoints(svg, points, correctness){
+  points.forEach((pt, i)=>{
+    const cx = px(pt.x1), cy = py(pt.x2);
+    const color = pt.y === 1 ? 'var(--teal)' : 'var(--red)';
+    const wrong = correctness ? !correctness[i] : false;
+    svg.appendChild(svgEl('circle',{cx,cy,r:11,fill:color,'fill-opacity':wrong?0.15:1,stroke:color,'stroke-width':2}));
+    if(wrong){
+      const s=6;
+      svg.appendChild(svgEl('line',{x1:cx-s,y1:cy-s,x2:cx+s,y2:cy+s,stroke:'var(--ink)','stroke-width':2}));
+      svg.appendChild(svgEl('line',{x1:cx-s,y1:cy+s,x2:cx+s,y2:cy-s,stroke:'var(--ink)','stroke-width':2}));
+    }
+    svg.appendChild(svgEl('text',{x:cx, y:cy-18, 'text-anchor':'middle', fill:'var(--muted)', style:'font-family:var(--mono); font-size:10px;'})).textContent = `(${pt.x1},${pt.x2})`;
+  });
+}
+
+// ---------- mini truth-table plots ----------
+function buildMiniPlot(container, title, points, lineFn, separable){
+  const card = document.createElement('div');
+  card.className = 'panel';
+  card.innerHTML = `<div class="tag">${separable ? 'linearly separable' : 'NOT linearly separable'}</div><h3>${title}</h3>`;
+  const svg = svgEl('svg',{viewBox:'0 0 300 300', class:'mini-plot', style:'margin-top:10px;'});
+  gridBackground(svg);
+  if(lineFn){
+    const y1 = lineFn(-0.5), y2 = lineFn(1.5);
+    svg.appendChild(svgEl('line',{x1:px(-0.5),y1:py(y1),x2:px(1.5),y2:py(y2),stroke:'var(--amber)','stroke-width':2,'stroke-dasharray': separable? '0':'4 4'}));
+  }
+  drawPoints(svg, points, points.map(()=>true));
+  card.appendChild(svg);
+  container.appendChild(card);
+}
+
+const tt = document.getElementById('truthTables');
+buildMiniPlot(tt, 'AND', AND_POINTS, x1 => (1.5 - x1), true);
+buildMiniPlot(tt, 'OR',  OR_POINTS,  x1 => (0.5 - x1), true);
+buildMiniPlot(tt, 'XOR', XOR_POINTS, x1 => (1 - x1), false);
+
+// ---------- interactive single perceptron ----------
+const singleSvg = document.getElementById('singlePlot');
+const w1Slider = document.getElementById('w1');
+const w2Slider = document.getElementById('w2');
+const bSlider = document.getElementById('b');
+const scoreBox = document.getElementById('singleScore');
+const verifBody = document.querySelector('#verificationTable tbody');
+
+function step(v){ return v >= 0 ? 1 : 0; }
+
+function updateVerificationTable(w1, w2, b) {
+  verifBody.innerHTML = '';
+  XOR_POINTS.forEach(pt => {
+    const sum = w1 * pt.x1 + w2 * pt.x2 + b;
+    const pred = step(sum);
+    const isCorrect = pred === pt.y;
+    
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>(${pt.x1},${pt.x2})</td>
+      <td>${(w1 * pt.x1).toFixed(2)}</td>
+      <td>${(w2 * pt.x2).toFixed(2)}</td>
+      <td>${b.toFixed(2)}</td>
+      <td>${sum.toFixed(2)}</td>
+      <td>${pred}</td>
+      <td>${pt.y}</td>
+      <td class="${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? '✓' : '✗'}</td>
+    `;
+    verifBody.appendChild(row);
+  });
+}
+
+function renderSingle(){
+  const w1 = parseFloat(w1Slider.value);
+  const w2 = parseFloat(w2Slider.value);
+  const b = parseFloat(bSlider.value);
+  document.getElementById('w1val').textContent = w1.toFixed(1);
+  document.getElementById('w2val').textContent = w2.toFixed(1);
+  document.getElementById('bval').textContent = b.toFixed(1);
+
+  while(singleSvg.firstChild) singleSvg.removeChild(singleSvg.firstChild);
+  gridBackground(singleSvg);
+
+  if(Math.abs(w2) > 0.001){
+    const x2at = (x1)=> -(w1*x1 + b)/w2;
+    singleSvg.appendChild(svgEl('line',{
+      x1:px(-0.5), y1:py(x2at(-0.5)), x2:px(1.5), y2:py(x2at(1.5)),
+      stroke:'var(--amber)', 'stroke-width':2.5
+    }));
+  } else if(Math.abs(w1) > 0.001){
+    const x1at = -b/w1;
+    singleSvg.appendChild(svgEl('line',{
+      x1:px(x1at), y1:py(-0.5), x2:px(x1at), y2:py(1.5),
+      stroke:'var(--amber)', 'stroke-width':2.5
+    }));
+  }
+
+  const correctness = XOR_POINTS.map(pt => step(w1*pt.x1 + w2*pt.x2 + b) === pt.y);
+  drawPoints(singleSvg, XOR_POINTS, correctness);
+
+  const correct = correctness.filter(Boolean).length;
+  scoreBox.innerHTML = `Correctly classified: <span class="n">${correct} / 4</span>`;
+  scoreBox.classList.toggle('full', correct === 4);
+  if(correct === 4){
+    scoreBox.innerHTML += ' — wait, really? Check again: this can only happen right at a boundary edge case, not a true separation.';
+  }
+
+  updateVerificationTable(w1, w2, b);
+}
+
+[w1Slider, w2Slider, bSlider].forEach(s => s.addEventListener('input', renderSingle));
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  w1Slider.value = 1; w2Slider.value = 1; bSlider.value = -0.5;
+  renderSingle();
+});
+renderSingle();
+
+// ---------- MLP folded region plot ----------
+const mlpSvg = document.getElementById('mlpPlot');
+gridBackground(mlpSvg);
+
+const bandPoints = [
+  [px(-0.5), py(1 - (-0.5))],
+  [px(1.5), py(1 - 1.5)],
+  [px(1.5), py(2 - 1.5)],
+  [px(-0.5), py(2 - (-0.5))],
+].map(p => p.join(',')).join(' ');
+mlpSvg.appendChild(svgEl('polygon',{points:bandPoints, fill:'var(--amber)', 'fill-opacity':0.16}));
+
+mlpSvg.appendChild(svgEl('line',{x1:px(-0.5), y1:py(1-(-0.5)), x2:px(1.5), y2:py(1-1.5), stroke:'var(--teal)', 'stroke-width':2}));
+mlpSvg.appendChild(svgEl('line',{x1:px(-0.5), y1:py(2-(-0.5)), x2:px(1.5), y2:py(2-1.5), stroke:'var(--red)', 'stroke-width':2}));
+
+const mlpCorrectness = XOR_POINTS.map(()=>true);
+drawPoints(mlpSvg, XOR_POINTS, mlpCorrectness);
+
+// ================= QUIZ =================
+(function(){
+  const questions = [
+    {
+      q: "Why is XOR not learnable by a single perceptron?",
+      options: [
+        "The inputs are too large for the step function",
+        "The four points are not linearly separable",
+        "It requires more than two input features",
+        "The bias term cannot handle diagonal patterns"
+      ],
+      correct: 1,
+      expl: "XOR points form two diagonals. No single straight line can separate the two classes (0s vs 1s) without misclassifying at least one point."
+    },
+    {
+      q: "In the derived multilayer solution shown, what does hidden neuron h1 (w1=1, w2=1, b=-0.5) approximate?",
+      options: [
+        "AND gate",
+        "OR gate",
+        "NAND gate",
+        "XOR gate directly"
+      ],
+      correct: 1,
+      expl: "h1 fires for any input where x1 + x2 >= 0.5 — i.e., when at least one input is 1, which matches the OR truth table."
+    },
+    {
+      q: "Geometrically, what does a single perceptron's decision boundary w₁x₁ + w₂x₂ + b = 0 represent in the input space?",
+      options: [
+        "A circle centered at the origin",
+        "A straight line dividing the plane into two half-planes",
+        "A parabolic curve",
+        "A 3D hypersurface"
+      ],
+      correct: 1,
+      expl: "The weighted sum equation defines a linear hyperplane (a line in 2D). Points on one side get output 1; the other side get 0."
+    },
+    {
+      q: "In the XOR MLP, the output neuron effectively computes:",
+      options: [
+        "h1 + h2",
+        "h1 AND NOT h2",
+        "h1 OR h2",
+        "h2 - h1"
+      ],
+      correct: 1,
+      expl: "It implements h1 AND NOT h2 using weights [1, -1] and bias -0.5. This fires exactly when inputs differ."
+    },
+    {
+      q: "What key capability does adding a hidden layer of perceptrons provide for solving XOR?",
+      options: [
+        "It allows the network to draw curved or non-linear decision boundaries by composing multiple linear ones",
+        "It increases training speed dramatically",
+        "It removes the need for any activation function",
+        "It reduces the total number of parameters needed"
+      ],
+      correct: 0,
+      expl: "Hidden neurons create intermediate features (lines). The output layer combines them into complex regions (like the XOR band). This is the foundation of deep learning and the Universal Approximation Theorem."
+    }
+  ];
+
+  const container = document.getElementById('quizContainer');
+  let userAnswers = new Array(questions.length).fill(null);
+
+  function renderQuiz() {
+    container.innerHTML = '';
+    questions.forEach((q, i) => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'panel';
+      qDiv.style.marginBottom = '24px';
+      qDiv.innerHTML = `
+        <div class="tag">QUESTION ${i+1}</div>
+        <h3 style="margin:12px 0 16px; font-size:17px;">${q.q}</h3>
+        <div class="quiz-options" data-q="${i}"></div>
+      `;
+      const optsDiv = qDiv.querySelector('.quiz-options');
+      q.options.forEach((opt, j) => {
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        label.style.padding = '10px 14px';
+        label.style.margin = '6px 0';
+        label.style.border = '1px solid var(--hair)';
+        label.style.borderRadius = '6px';
+        label.style.cursor = 'pointer';
+        label.innerHTML = `
+          <input type="radio" name="q${i}" value="${j}" style="margin-right:8px;">
+          ${opt}
+        `;
+        label.addEventListener('change', () => {
+          userAnswers[i] = parseInt(label.querySelector('input').value);
+        });
+        optsDiv.appendChild(label);
+      });
+      container.appendChild(qDiv);
+    });
+  }
+
+  function checkAnswers() {
+    let score = 0;
+    const explanationsHTML = [];
+    
+    questions.forEach((q, i) => {
+      const isCorrect = userAnswers[i] === q.correct;
+      if (isCorrect) score++;
+      
+      const status = isCorrect ? 
+        `<span style="color:var(--teal)">✓ Correct</span>` : 
+        `<span style="color:var(--red)">✗ Incorrect</span>`;
+      
+      explanationsHTML.push(`
+        <div style="margin-bottom:22px; padding:14px; background:var(--bg-panel-2); border-radius:8px;">
+          <strong>Q${i+1}:</strong> ${status}<br>
+          <span style="color:var(--muted)">${q.expl}</span>
+        </div>
+      `);
+    });
+
+    const percent = Math.round((score / questions.length) * 100);
+    document.getElementById('scoreDisplay').innerHTML = `
+      You got <span class="n">${score} / ${questions.length}</span> correct (${percent}%)
+      ${score === questions.length ? ' — Excellent understanding of perceptrons!' : ''}
+    `;
+    document.getElementById('scoreDisplay').classList.toggle('full', score === questions.length);
+
+    document.getElementById('explanations').innerHTML = explanationsHTML.join('');
+    document.getElementById('quizResults').style.display = 'block';
+  }
+
+  document.getElementById('submitQuiz').addEventListener('click', checkAnswers);
+  document.getElementById('resetQuiz').addEventListener('click', () => {
+    userAnswers = new Array(questions.length).fill(null);
+    document.getElementById('quizResults').style.display = 'none';
+    renderQuiz();
+  });
+
+  renderQuiz();
+})();
+</script>
+</body>
+</html>
