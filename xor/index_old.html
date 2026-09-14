@@ -4,22 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>XOR ⊕ Perceptron — why one line isn't enough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#ffffff;
-    --bg-panel:#f4f4f4;
-    --bg-panel-2:#eeeeee;
-    --grid-line: rgba(0,0,0,0.035);
-    --ink:#2b2b2b;
-    --muted:#6b6b6b;
-    --faint:#8a8a8a;
-    --amber:#3b6ea5;
-    --red:#b23b3b;
-    --teal:#2f7d6b;
-    --hair: rgba(0,0,0,0.12);
-    --display: Verdana, Geneva, sans-serif;
-    --body: Verdana, Geneva, sans-serif;
-    --mono: 'Courier New', monospace;
+    --bg:#10151c;
+    --bg-panel:#161d27;
+    --bg-panel-2:#1b2330;
+    --grid-line: rgba(232,230,223,0.045);
+    --ink:#e8e6df;
+    --muted:#8b93a0;
+    --faint:#5b6371;
+    --amber:#f2b84b;
+    --red:#e15554;
+    --teal:#3aafa9;
+    --hair: rgba(232,230,223,0.12);
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'IBM Plex Sans', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -31,8 +33,7 @@
       var(--bg);
     color:var(--ink);
     font-family:var(--body);
-    font-size:10pt;
-    line-height:1.6;
+    line-height:1.55;
   }
   .wrap{max-width:980px; margin:0 auto; padding:0 28px;}
   a{color:var(--amber);}
@@ -44,8 +45,8 @@
   }
   .eyebrow{
     font-family:var(--mono);
-    font-size:8pt;
-    letter-spacing:.1em;
+    font-size:12.5px;
+    letter-spacing:.14em;
     text-transform:uppercase;
     color:var(--faint);
     display:flex; align-items:center; gap:10px;
@@ -55,14 +56,14 @@
   h1{
     font-family:var(--display);
     font-weight:600;
-    font-size:20pt;
+    font-size:clamp(34px, 5.4vw, 58px);
     line-height:1.05;
     margin:0 0 20px;
     letter-spacing:-0.01em;
   }
   h1 .xor-symbol{color:var(--amber);}
   .sub{
-    font-size:10.5pt;
+    font-size:18px;
     color:var(--muted);
     max-width:60ch;
     margin:0;
@@ -76,21 +77,21 @@
   .num{
     font-family:var(--mono);
     color:var(--amber);
-    font-size:8.5pt;
+    font-size:13px;
     letter-spacing:.1em;
   }
   h2{
     font-family:var(--display);
     font-weight:600;
-    font-size:13pt;
+    font-size:clamp(24px,3.4vw,32px);
     margin:8px 0 18px;
     letter-spacing:-0.01em;
   }
-  p{color:var(--ink); font-size:10pt; max-width:66ch;}
+  p{color:var(--ink); font-size:16px; max-width:66ch;}
   p.muted{color:var(--muted);}
-  .lede{font-size:10.5pt; color:var(--muted); max-width:64ch;}
+  .lede{font-size:17px; color:var(--muted); max-width:64ch;}
 
-  code, .mono{font-family:var(--mono); font-size:9pt;}
+  code, .mono{font-family:var(--mono); font-size:14.5px;}
   .formula{
     font-family:var(--mono);
     background:var(--bg-panel);
@@ -98,7 +99,7 @@
     border-radius:8px;
     padding:16px 20px;
     display:inline-block;
-    font-size:9.5pt;
+    font-size:15px;
     color:var(--amber);
     margin:10px 0 6px;
   }
@@ -119,13 +120,13 @@
   }
   .panel h3{
     font-family:var(--display);
-    font-size:11pt;
+    font-size:16px;
     margin:0 0 4px;
     font-weight:600;
   }
   .panel .tag{
     font-family:var(--mono);
-    font-size:8pt;
+    font-size:11px;
     color:var(--faint);
     text-transform:uppercase;
     letter-spacing:.1em;
@@ -141,7 +142,7 @@
   .controls{display:flex; flex-direction:column; gap:18px; margin-top:6px;}
   .slider-row label{
     font-family:var(--mono);
-    font-size:8.5pt;
+    font-size:13px;
     color:var(--muted);
     display:flex;
     justify-content:space-between;
@@ -173,7 +174,7 @@
   }
   .score{
     font-family:var(--mono);
-    font-size:9pt;
+    font-size:14px;
     margin-top:16px;
     padding:12px 14px;
     border-radius:8px;
@@ -184,7 +185,7 @@
   .score.full{border-color:var(--teal); color:var(--teal);}
   .btn{
     font-family:var(--mono);
-    font-size:8.5pt;
+    font-size:12.5px;
     letter-spacing:.06em;
     background:transparent;
     border:1px solid var(--hair);
@@ -205,7 +206,7 @@
     width: 100%;
     border-collapse: collapse;
     font-family: var(--mono);
-    font-size: 9pt;
+    font-size: 13.5px;
     margin-top: 16px;
   }
   #verificationTable th, #verificationTable td {
@@ -220,7 +221,7 @@
   .correct { color: var(--teal); font-weight: 600; }
   .incorrect { color: var(--red); font-weight: 600; }
 
-  footer{padding:50px 0 80px; color:var(--faint); font-size:8.5pt; font-family:var(--body); border-top:1px solid var(--hair);}
+  footer{padding:50px 0 80px; color:var(--faint); font-size:13px; font-family:var(--mono);}
 
   ::selection{background:var(--amber); color:var(--bg);}
   @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
@@ -572,7 +573,7 @@
 </section>
 
 <footer>
-  <div class="wrap">© 2026 decodixAI. All rights reserved. Written by Mrityunjay Pathak.</div>
+  <div class="wrap">XOR ⊕ PERCEPTRON — an interactive note on linear separability (C)MrityunjayPathak@decodexai</div>
 </footer>
 
 <script>
@@ -670,7 +671,7 @@
 
     drawables.forEach(item=>{
       if(item.type === 'plane'){
-        ctx.strokeStyle = 'rgba(107,107,107,0.35)';
+        ctx.strokeStyle = 'rgba(139,147,160,0.35)';
         ctx.lineWidth = 1;
         planePts.forEach(([p1,p2])=>{
           ctx.beginPath();
@@ -686,7 +687,7 @@
         ctx.closePath();
         ctx.fillStyle = colorForZ(q.z);
         ctx.fill();
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+        ctx.strokeStyle = 'rgba(16,21,28,0.25)';
         ctx.lineWidth = 0.6;
         ctx.stroke();
       }
@@ -703,7 +704,7 @@
     }).sort((a,b)=> a.depth - b.depth);
 
     pointDraw.forEach(({pt, z, top, base})=>{
-      const color = z >= 0 ? '#2f7d6b' : '#b23b3b';
+      const color = z >= 0 ? '#3AAFA9' : '#E15554';
       ctx.strokeStyle = color;
       ctx.setLineDash([3,3]);
       ctx.lineWidth = 1.2;
@@ -717,12 +718,12 @@
       ctx.arc(top.sx, top.sy, 9, 0, Math.PI*2);
       ctx.fillStyle = color;
       ctx.fill();
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#10151c';
       ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      ctx.fillStyle = '#2b2b2b';
-      ctx.font = '11px "Courier New", monospace';
+      ctx.fillStyle = '#e8e6df';
+      ctx.font = '11px "IBM Plex Mono", monospace';
       ctx.textAlign = 'center';
       ctx.fillText(`(${pt.x1},${pt.x2})`, top.sx, top.sy - 16);
     });
