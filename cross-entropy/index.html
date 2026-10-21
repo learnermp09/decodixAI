@@ -177,12 +177,60 @@
     color: var(--text-dim);
   }
   footer a { color: var(--text-dim); }
+
+  /* ---- Site bar: back to decodixAI home ---- */
+  html { scroll-padding-top: 64px; }
+  .sitebar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,.94);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .sitebar-inner {
+    max-width: 760px; margin: 0 auto; padding: 0 24px;
+    display: flex; align-items: center; gap: 10px; height: 54px;
+  }
+  .home-link {
+    display: flex; align-items: center; gap: 4px;
+    padding: 5px 10px 5px 4px; margin-left: -4px;
+    border-radius: 8px; text-decoration: none; color: var(--text-dim);
+  }
+  .home-link:hover { background: var(--bg-alt); color: var(--text); }
+  .home-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .home-link .chev { font-size: 26px; line-height: 1; width: 14px; text-align: center; margin-top: -3px; }
+  .home-link img { height: 28px; width: auto; display: block; }
+  .sitebar .vdiv { width: 1px; height: 22px; background: var(--line); }
+  .sitebar .crumb {
+    font-family: "Courier New", monospace; font-size: 8pt; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--text-dim);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  /* ---- Phone fixes: wide tables scroll inside the page instead of pushing it sideways ---- */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 16px 0 24px; }
+  .table-scroll table { margin: 0; }
+  .scroll-hint { display: none; font-size: 8pt; color: var(--text-dim); margin: -16px 0 24px; }
+  @media (max-width: 760px) {
+    .scroll-hint { display: block; }
+    .table-scroll table { min-width: 560px; }
+  }
+  @media (max-width: 520px) {
+    .home-link .chev, .sitebar .vdiv, .sitebar .crumb { display: none; }
+    .home-link { margin-left: 0; padding: 5px 6px; }
+    .home-link img { height: 24px; }
+  }
 </style>
 </head>
 <body>
-  <div class="wrap">
+<nav class="sitebar" aria-label="Site">
+  <div class="sitebar-inner">
+    <a class="home-link" href="https://decodixai.com/" title="Back to DecodixAI home" aria-label="Back to DecodixAI home"><span class="chev" aria-hidden="true">&lsaquo;</span><img alt="DecodixAI" src="data:image/png;base64,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"></a>
+    <span class="vdiv" aria-hidden="true"></span>
+    <span class="crumb">CrossEntropy vs NLLLoss</span>
+  </div>
+</nav>
 
-    <a class="back-link" href="/">← decodixAI</a>
+  <div class="wrap">
 
     <header>
       <div class="eyebrow">PyTorch · Loss Functions</div>
@@ -200,7 +248,7 @@
     <div class="math-block">$$ z = \begin{bmatrix} 0.9 \\ 2.6 \\ 0.1 \end{bmatrix} $$</div>
 
     <h2>Stage-by-Stage Comparison</h2>
-    <table>
+    <div class="table-scroll"><table>
       <tr><th>Stage</th><th>CrossEntropyLoss Approach</th><th>LogSoftmax + NLLLoss Approach</th></tr>
       <tr><td>Output Layer</td><td>No activation</td><td>LogSoftmax(dim=1)</td></tr>
       <tr><td>Network Output</td><td>Raw logits $z = [0.9, 2.6, 0.1]$</td><td>Log probabilities $\log(p)$</td></tr>
@@ -220,7 +268,8 @@
       <tr><td>Prediction</td><td>$\arg\max(\text{logits}) = \text{Class } 1$</td><td>$\arg\max(\text{log probabilities}) = \text{Class } 1$</td></tr>
       <tr><td>Probability of Prediction</td><td>Softmax → 79.1%</td><td>exp() → 79.1%</td></tr>
       <tr><td>Recommended?</td><td>✅ Standard PyTorch practice</td><td>Used mainly for learning or specialized models</td></tr>
-    </table>
+    </table></div>
+    <div class="scroll-hint">&larr; swipe sideways to see all columns &rarr;</div>
 
     <h2>What Happens Internally?</h2>
 
@@ -278,14 +327,15 @@ Loss = 0.234</pre>
     </div>
 
     <h2>The Big Picture</h2>
-    <table>
+    <div class="table-scroll"><table>
       <tr><th>Quantity</th><th>Raw Logits</th><th>Softmax Output</th><th>LogSoftmax Output</th></tr>
       <tr><td>Class 0</td><td>0.9</td><td>0.145</td><td>-1.931</td></tr>
       <tr><td>Class 1</td><td>2.6</td><td>0.791</td><td>-0.234</td></tr>
       <tr><td>Class 2</td><td>0.1</td><td>0.064</td><td>-2.734</td></tr>
       <tr><td>Sum</td><td>3.6 (meaningless)</td><td>1.0</td><td>Not constrained</td></tr>
       <tr><td>Interpretation</td><td>Scores</td><td>Probabilities</td><td>Log probabilities</td></tr>
-    </table>
+    </table></div>
+    <div class="scroll-hint">&larr; swipe sideways to see all columns &rarr;</div>
 
     <h2>A Simple Way to Remember</h2>
     <pre class="diagram">               SAME NEURAL NETWORK
@@ -329,7 +379,7 @@ Loss = 0.234</pre>
 
     <div class="math-block">$$ \frac{\partial L}{\partial z} = [0.145,\ 0.791,\ 0.064] - [0,\ 1,\ 0] = [0.145,\ -0.209,\ 0.064] $$</div>
 
-    <p>This clean form — <code>prediction − target</code> — falls out of the chain rule whether you compute it via <code>CrossEntropyLoss</code> directly on logits, or via <code>LogSoftmax</code> followed by <code>NLLLoss</code>. Both paths differentiate down to the same gradient, which is what actually drives identical weight updates and identical trained models.</p>
+    <p>This clean form - <code>prediction − target</code> - falls out of the chain rule whether you compute it via <code>CrossEntropyLoss</code> directly on logits, or via <code>LogSoftmax</code> followed by <code>NLLLoss</code>. Both paths differentiate down to the same gradient, which is what actually drives identical weight updates and identical trained models.</p>
 
     <h2>Why CrossEntropyLoss Is Preferred</h2>
     <p>If the math is identical, why does PyTorch's documentation and most codebases favor <code>CrossEntropyLoss</code> over manually chaining <code>LogSoftmax</code> + <code>NLLLoss</code>? The answer is <strong>numerical stability</strong>, not mathematics.</p>
@@ -338,14 +388,14 @@ Loss = 0.234</pre>
 
     <div class="math-block">$$ \log\sum_j e^{z_j} = m + \log\sum_j e^{z_j - m}, \quad \text{where } m = \max_j z_j $$</div>
 
-    <p>Subtracting the max logit $m$ before exponentiating keeps every term in the sum bounded between 0 and 1, eliminating overflow entirely — while producing a mathematically identical result. This fusion is only fully available when LogSoftmax and NLLLoss are computed together as one operation, which is exactly what <code>CrossEntropyLoss</code> does internally.</p>
+    <p>Subtracting the max logit $m$ before exponentiating keeps every term in the sum bounded between 0 and 1, eliminating overflow entirely - while producing a mathematically identical result. This fusion is only fully available when LogSoftmax and NLLLoss are computed together as one operation, which is exactly what <code>CrossEntropyLoss</code> does internally.</p>
 
     <div class="callout">
-      In short: <code>LogSoftmax + NLLLoss</code> is correct and useful for understanding the mechanics, but <code>CrossEntropyLoss</code> is the numerically safe, production-recommended choice — same math, more robust computation.
+      In short: <code>LogSoftmax + NLLLoss</code> is correct and useful for understanding the mechanics, but <code>CrossEntropyLoss</code> is the numerically safe, production-recommended choice - same math, more robust computation.
     </div>
 
     <h2>PyTorch Example: Verifying the Equivalence</h2>
-    <p>The snippet below builds the exact example from this article — logits $z = [0.9, 2.6, 0.1]$, true class 1 — and confirms both approaches give the same loss and the same gradient.</p>
+    <p>The snippet below builds the exact example from this article - logits $z = [0.9, 2.6, 0.1]$, true class 1 - and confirms both approaches give the same loss and the same gradient.</p>
 
     <pre class="diagram">import torch
 import torch.nn as nn
@@ -386,7 +436,7 @@ print(f"Gradients match:                 {torch.allclose(logits_a.grad, logits_b
 # Gradient (LogSoftmax+NLLLoss):   tensor([[ 0.1451, -0.2088,  0.0637]])
 # Gradients match:                 True</pre>
 
-    <p>Both branches converge on the same loss (≈0.235) and the same gradient (<code>p − y</code>), confirming the equivalence proven above — not just in theory, but in what PyTorch actually computes.</p>
+    <p>Both branches converge on the same loss (≈0.235) and the same gradient (<code>p − y</code>), confirming the equivalence proven above - not just in theory, but in what PyTorch actually computes.</p>
 
     <footer>
       © 2026 decodixAI. All rights reserved. Written by Mrityunjay Pathak.<br>
